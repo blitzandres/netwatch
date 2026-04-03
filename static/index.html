@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NetWatch Next</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg-soft:#0d1728;
+      --panel:#111d31;
+      --panel-soft:#17263d;
+      --panel-bright:#1d3150;
+      --line:rgba(255,255,255,.08);
+      --text:#ecf2ff;
+      --muted:#8da2c2;
+      --gold:#f6c15b;
+      --cyan:#60d9ff;
+      --green:#30d17d;
+      --amber:#f3b541;
+      --red:#f05d5e;
+      --purple:#9a74ff;
+      --shadow:0 24px 60px rgba(0,0,0,.32);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:radial-gradient(circle at top,#12233b 0,#07111f 55%,#050c16 100%);color:var(--text);font:14px/1.4 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{display:grid;grid-template-columns:280px minmax(0,1fr);height:100vh}
+    .sidebar{background:rgba(9,16,28,.92);border-right:1px solid var(--line);padding:22px 18px 18px;display:flex;flex-direction:column;gap:18px}
+    .brand{padding:18px;border-radius:20px;background:linear-gradient(135deg,rgba(246,193,91,.18),rgba(96,217,255,.08));border:1px solid rgba(246,193,91,.18);box-shadow:var(--shadow)}
+    .brand h1{margin:0;font-size:24px;letter-spacing:-.04em}
+    .brand p{margin:8px 0 0;color:var(--muted);font-size:12px}
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav button{border:1px solid transparent;background:rgba(255,255,255,.03);color:var(--text);padding:12px 14px;border-radius:14px;text-align:left;font-weight:700;transition:.15s}
+    .nav button:hover{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
+    .nav button.active{background:linear-gradient(135deg,rgba(96,217,255,.16),rgba(246,193,91,.12));border-color:rgba(96,217,255,.2);color:#fff}
+    .sidebar-card{padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+    .sidebar-card h2{margin:0 0 10px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .mini-list{display:flex;flex-direction:column;gap:8px}
+    .mini-row{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+    .mini-row span:last-child{color:var(--text);font-weight:700}
+    .main{display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);background:rgba(10,17,29,.72);backdrop-filter:blur(14px)}
+    .topbar h2{margin:0;font-size:18px}
+    .topbar p{margin:3px 0 0;color:var(--muted);font-size:12px}
+    .status-strip{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:12px;color:var(--muted);white-space:nowrap}
+    .pill b{color:var(--text)}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--muted)}
+    .dot.ok{background:var(--green);box-shadow:0 0 10px rgba(48,209,125,.5)}
+    .dot.warn{background:var(--amber)}
+    .dot.err{background:var(--red)}
+    .views{min-width:0;min-height:0}
+    .view{display:none;height:100%}
+    .view.active{display:block}
+    .grid{display:grid;gap:16px;padding:18px;height:100%;min-height:0}
+    .card{background:linear-gradient(180deg,rgba(18,29,48,.95),rgba(15,24,39,.95));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
+    .card-head h3{margin:0;font-size:13px;letter-spacing:.02em}
+    .card-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .card-body{padding:16px}
+    .live-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;height:100%}
+    .globe-card{position:relative;min-height:0}
+    .globe-wrap{position:relative;height:100%;min-height:560px;background:radial-gradient(circle at top,rgba(96,217,255,.1),transparent 28%),#04101b}
+    #globeCanvas{position:absolute;inset:0}
+    .globe-overlay{position:absolute;inset:0;pointer-events:none}
+    .globe-top{position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;gap:12px}
+    .globe-title{padding:12px 14px;border-radius:14px;background:rgba(7,17,31,.82);backdrop-filter:blur(12px);border:1px solid var(--line);max-width:400px}
+    .globe-title h3{margin:0;font-size:20px;letter-spacing:-.04em}
+    .globe-title p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+    .stat-stack{display:grid;grid-template-columns:repeat(2,minmax(110px,1fr));gap:10px;pointer-events:auto}
+    .stat{padding:12px;border-radius:14px;background:rgba(7,17,31,.84);backdrop-filter:blur(12px);border:1px solid var(--line)}
+    .stat label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .stat strong{display:block;margin-top:6px;font-size:22px;color:var(--text)}
+    .globe-bottom{position:absolute;left:16px;right:16px;bottom:16px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end}
+    .ticker{flex:1;min-height:48px;padding:10px 12px;border-radius:14px;background:rgba(7,17,31,.84);backdrop-filter:blur(12px);border:1px solid var(--line);font-size:12px;color:var(--muted);pointer-events:auto}
+    .globe-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;pointer-events:auto}
+    .globe-controls button,.inline-btn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:9px 12px;border-radius:12px;font-weight:700}
+    .globe-controls button.active,.inline-btn.active{background:rgba(96,217,255,.12);border-color:rgba(96,217,255,.28)}
+    .live-side{display:grid;grid-template-rows:auto auto minmax(0,1fr) minmax(0,1fr);gap:16px;min-height:0}
+    .buffer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .buffer{padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+    .buffer label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .buffer strong{display:block;margin-top:6px;font-size:20px}
+    .track{margin-top:10px;height:14px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+    .fill{height:100%;border-radius:999px;transition:.25s}
+    .tiny-bars{display:flex;gap:4px;align-items:flex-end;height:44px;margin-top:10px}
+    .tiny-bars span{flex:1;display:block;min-height:4px;border-radius:4px 4px 0 0;opacity:.9}
+    .family-wrap,.mode-wrap{display:flex;gap:8px;flex-wrap:wrap}
+    .family-wrap button,.mode-wrap button{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:8px 10px;border-radius:999px;font-weight:700;font-size:12px}
+    .family-wrap button.active,.mode-wrap button.active{background:rgba(246,193,91,.12);border-color:rgba(246,193,91,.28)}
+    .list{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+    .item{padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+    .item-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .item strong{display:block}
+    .item small{display:block;margin-top:4px;color:var(--muted)}
+    .item-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .item-actions button{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:7px 10px;border-radius:10px}
+    .item-actions button:hover,.inline-btn:hover,.globe-controls button:hover,.family-wrap button:hover,.mode-wrap button:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.08)}
+    .split{display:grid;grid-template-columns:360px minmax(0,1fr);gap:16px;height:100%}
+    .stack{display:grid;gap:16px;min-height:0}
+    .input-row{display:flex;gap:10px;flex-wrap:wrap}
+    .input-row input,.input-row textarea,.terminal-input{flex:1;min-width:0;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:11px 12px;border-radius:12px;outline:none}
+    .input-row textarea{min-height:120px;resize:vertical}
+    .primary{background:linear-gradient(135deg,rgba(96,217,255,.18),rgba(246,193,91,.14));border:1px solid rgba(96,217,255,.25);color:#fff;padding:11px 14px;border-radius:12px;font-weight:800}
+    .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-content:start}
+    .result-card{padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+    .result-card h4{margin:0 0 8px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .kv{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:12px}
+    .kv b{color:var(--muted);font-weight:600}
+    .kv span{word-break:break-word}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#d5e3ff}
+    .table-wrap{overflow:auto;min-height:0}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;vertical-align:top}
+    th{position:sticky;top:0;background:rgba(9,16,28,.96);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .badge.good{color:var(--green)}
+    .badge.warn{color:var(--amber)}
+    .badge.bad{color:var(--red)}
+    .terminal-out{background:#060c14;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:220px;max-height:320px;overflow:auto}
+    .terminal-out pre{color:#9be3bf}
+    .tools-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;height:100%}
+    canvas{display:block;width:100%;height:220px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px}
+    .empty{color:var(--muted);font-size:12px}
+    @media (max-width:1200px){
+      .live-layout,.split,.tools-grid{grid-template-columns:1fr}
+      .live-side{grid-template-rows:auto auto auto auto}
+    }
+    @media (max-width:900px){
+      .app{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .topbar{padding:14px}
+      .grid{padding:14px}
+      .globe-top,.globe-bottom{position:static;padding:16px}
+      .globe-overlay{display:flex;flex-direction:column;justify-content:space-between}
+      .globe-wrap{min-height:660px}
+      .stat-stack{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>NetWatch Next</h1>
+        <p>Functional core rebuild around routes that actually work: live globe, investigation, tools, and data.</p>
+      </div>
+
+      <div class="nav">
+        <button class="active" data-view="live">Live Globe</button>
+        <button data-view="investigate">Investigation</button>
+        <button data-view="tools">Tools</button>
+        <button data-view="data">Data</button>
+      </div>
+
+      <div class="sidebar-card">
+        <h2>Core Value</h2>
+        <div class="mini-list">
+          <div class="mini-row"><span>Keep</span><span>working endpoints</span></div>
+          <div class="mini-row"><span>Cut</span><span>dead surfaces</span></div>
+          <div class="mini-row"><span>Focus</span><span>live operations</span></div>
+          <div class="mini-row"><span>Render</span><span>real data</span></div>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <h2>Now Running</h2>
+        <div class="mini-list" id="sidebarSummary">
+          <div class="mini-row"><span>Status</span><span>Loading</span></div>
+          <div class="mini-row"><span>Packets</span><span>Loading</span></div>
+          <div class="mini-row"><span>Nodes</span><span>Loading</span></div>
+          <div class="mini-row"><span>Threats</span><span>Loading</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="viewTitle">Live Globe</h2>
+          <p id="viewSub">3D traffic map, path families, buffer pressure, and world-facing node activity.</p>
+        </div>
+        <div class="status-strip" id="statusStrip">
+          <div class="pill"><span class="dot"></span><b>Loading</b></div>
+        </div>
+      </header>
+
+      <div class="views">
+        <section class="view active" id="view-live">
+          <div class="grid">
+            <div class="live-layout">
+              <div class="card globe-card">
+                <div class="globe-wrap">
+                  <div id="globeCanvas"></div>
+                  <div class="globe-overlay">
+                    <div class="globe-top">
+                      <div class="globe-title">
+                        <h3>Live 3D Traffic Globe</h3>
+                        <p>Actual captured traffic, grouped into path families and rendered on the globe instead of buried in side views.</p>
+                      </div>
+                      <div class="stat-stack" id="liveStats"></div>
+                    </div>
+                    <div class="globe-bottom">
+                      <div class="ticker" id="liveTicker">Waiting for globe traffic data…</div>
+                      <div class="globe-controls">
+                        <button class="active" data-layer="hybrid">Hybrid</button>
+                        <button data-layer="lines">Lines</button>
+                        <button data-layer="points">Nodes</button>
+                        <button id="rotateBtn">Rotate</button>
+                        <button id="refreshLiveBtn">Refresh</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="live-side">
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Live Buffer</h3>
+                      <p>Inbound and outbound pressure based on current captured traffic.</p>
+                    </div>
+                    <div class="badge" id="pressureBadge">Cold</div>
+                  </div>
+                  <div class="card-body">
+                    <div class="buffer-grid">
+                      <div class="buffer">
+                        <label>Outbound</label>
+                        <strong id="outValue">0 B</strong>
+                        <div class="track"><div class="fill" id="outFill" style="width:0;background:var(--green)"></div></div>
+                        <div class="tiny-bars" id="outBars"></div>
+                      </div>
+                      <div class="buffer">
+                        <label>Inbound</label>
+                        <strong id="inValue">0 B</strong>
+                        <div class="track"><div class="fill" id="inFill" style="width:0;background:var(--green)"></div></div>
+                        <div class="tiny-bars" id="inBars"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Path Families</h3>
+                      <p>Filter actual globe traffic by provider family instead of leaving the page.</p>
+                    </div>
+                    <div class="badge mono" id="familyCount">0</div>
+                  </div>
+                  <div class="card-body">
+                    <div class="family-wrap" id="familyFilters"></div>
+                    <div class="mode-wrap" style="margin-top:12px" id="densityModes">
+                      <button data-density="focus">Focus</button>
+                      <button data-density="balanced">Balanced</button>
+                      <button class="active" data-density="dense">Dense</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Hot Nodes</h3>
+                      <p>Top live remote nodes on the current globe feed.</p>
+                    </div>
+                  </div>
+                  <div class="card-body list" id="nodeList">
+                    <div class="empty">Waiting for traffic nodes…</div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Live Notes</h3>
+                      <p>Short operational notes for the current rescue pass.</p>
+                    </div>
+                  </div>
+                  <div class="card-body list">
+                    <div class="item">
+                      <strong>What this cut keeps</strong>
+                      <small>Live globe, investigation, terminal, processes, folders, device adapters, packets, connections, and bandwidth.</small>
+                    </div>
+                    <div class="item">
+                      <strong>What this cut removes</strong>
+                      <small>Duplicate or half-finished views that only spread the same data over too many panels.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-investigate">
+          <div class="grid">
+            <div class="split">
+              <div class="stack">
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Run Investigation</h3>
+                      <p>Use the bundled sonde and traceroute routes that are already working.</p>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="input-row">
+                      <input id="targetInput" placeholder="IP or domain, e.g. 8.8.8.8 or google.com" value="8.8.8.8">
+                      <button class="primary" id="runInvestigationBtn">Run</button>
+                    </div>
+                    <div class="item" style="margin-top:12px">
+                      <strong>Last target</strong>
+                      <small id="lastTarget">No investigation yet.</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Traceroute</h3>
+                      <p>Actual hop data from the backend traceroute route.</p>
+                    </div>
+                  </div>
+                  <div class="card-body list" id="tracerouteList">
+                    <div class="empty">Run an investigation to load traceroute hops.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <div>
+                    <h3>Investigation Results</h3>
+                    <p>Bundled geo, ping, ports, SSL, DNS, whois, and BGP results.</p>
+                  </div>
+                </div>
+                <div class="card-body results" id="investigationResults">
+                  <div class="empty">Run an investigation to see results here.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-tools">
+          <div class="grid">
+            <div class="tools-grid">
+              <div class="stack">
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Terminal</h3>
+                      <p>Safe read-only command runner backed by <span class="mono">/api/run_cmd</span>.</p>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="input-row">
+                      <input class="terminal-input" id="terminalInput" placeholder="Try: netstat -an">
+                      <button class="primary" id="terminalRunBtn">Run</button>
+                    </div>
+                    <div class="terminal-out" style="margin-top:12px"><pre id="terminalOutput">No command run yet.</pre></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Processes</h3>
+                      <p>Top memory and network-active processes.</p>
+                    </div>
+                    <button class="inline-btn" id="refreshProcessesBtn">Refresh</button>
+                  </div>
+                  <div class="card-body table-wrap">
+                    <table>
+                      <thead>
+                        <tr><th>Process</th><th>PID</th><th>Memory</th><th>CPU</th><th>Net</th></tr>
+                      </thead>
+                      <tbody id="processTable">
+                        <tr><td colspan="5" class="empty">Loading processes…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stack">
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Folders</h3>
+                      <p>Useful folders and NetWatch storage paths.</p>
+                    </div>
+                  </div>
+                  <div class="card-body list" id="folderList">
+                    <div class="empty">Loading folders…</div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Device Adapters</h3>
+                      <p>Hardware-side tooling status, if available.</p>
+                    </div>
+                  </div>
+                  <div class="card-body list" id="adapterList">
+                    <div class="empty">Loading device adapters…</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-data">
+          <div class="grid">
+            <div class="stack">
+              <div class="card">
+                <div class="card-head">
+                  <div>
+                    <h3>Bandwidth</h3>
+                    <p>Recent in/out samples from the live bandwidth route.</p>
+                  </div>
+                  <button class="inline-btn" id="refreshDataBtn">Refresh</button>
+                </div>
+                <div class="card-body">
+                  <canvas id="bandwidthCanvas" width="1200" height="260"></canvas>
+                </div>
+              </div>
+
+              <div class="split">
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Packets</h3>
+                      <p>Most recent captured packets.</p>
+                    </div>
+                  </div>
+                  <div class="card-body table-wrap">
+                    <table>
+                      <thead>
+                        <tr><th>Time</th><th>Dir</th><th>Remote</th><th>Proto</th><th>Bytes</th></tr>
+                      </thead>
+                      <tbody id="packetTable">
+                        <tr><td colspan="5" class="empty">Loading packets…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <div>
+                      <h3>Connections</h3>
+                      <p>Live connection view from the backend.</p>
+                    </div>
+                  </div>
+                  <div class="card-body table-wrap">
+                    <table>
+                      <thead>
+                        <tr><th>Process</th><th>Remote</th><th>Status</th><th>PID</th></tr>
+                      </thead>
+                      <tbody id="connectionTable">
+                        <tr><td colspan="4" class="empty">Loading connections…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script>
+    const state = {
+      view: 'live',
+      status: null,
+      live: {
+        layer: 'hybrid',
+        density: 'dense',
+        provider: 'all',
+        rotating: true,
+        data: {markers: [], arcs: []},
+        historyIn: [],
+        historyOut: []
+      },
+      sonde: null,
+      traceroute: null,
+      packets: [],
+      connections: [],
+      bandwidth: [],
+      processes: null,
+      folders: [],
+      adapters: []
+    };
+
+    const viewMeta = {
+      live: {
+        title: 'Live Globe',
+        sub: '3D traffic map, path families, buffer pressure, and world-facing node activity.'
+      },
+      investigate: {
+        title: 'Investigation',
+        sub: 'Run the sonde and traceroute routes against real targets.'
+      },
+      tools: {
+        title: 'Tools',
+        sub: 'Terminal, processes, folders, and hardware adapter status.'
+      },
+      data: {
+        title: 'Data',
+        sub: 'Packets, connections, and bandwidth without the old UI sprawl.'
+      }
+    };
+
+    let globe = null;
+    let liveTimer = null;
+    let toolTimer = null;
+    let dataTimer = null;
+
+    function fmtBytes(bytes) {
+      const b = Number(bytes || 0);
+      if (b < 1024) return b.toFixed(0) + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+      if (b < 1024 * 1024 * 1024) return (b / 1024 / 1024).toFixed(1) + ' MB';
+      return (b / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+    }
+
+    function fmtNumber(n) {
+      return Number(n || 0).toLocaleString();
+    }
+
+    async function api(url, options) {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+      return res.json();
+    }
+
+    function detectFamily(item) {
+      const text = [item.company, item.family, item.isp, item.as, item.ip].filter(Boolean).join(' ').toLowerCase();
+      if (!text) return 'other';
+      const rules = [
+        ['apple', ['apple', 'icloud', 'mzstatic', 'aaplimg']],
+        ['google', ['google', 'youtube', 'gstatic', '1e100']],
+        ['cloudflare', ['cloudflare']],
+        ['amazon', ['amazon', 'aws', 'cloudfront']],
+        ['microsoft', ['microsoft', 'azure', 'office', 'onedrive', 'windows']],
+        ['meta', ['meta', 'facebook', 'instagram', 'whatsapp', 'fbcdn']],
+        ['github', ['github']],
+        ['openai', ['openai', 'chatgpt']],
+        ['anthropic', ['anthropic', 'claude']],
+        ['discord', ['discord']],
+        ['spotify', ['spotify']],
+        ['netflix', ['netflix']],
+        ['zoom', ['zoom']],
+        ['fastly', ['fastly']],
+        ['akamai', ['akamai']],
+        ['tradingview', ['tradingview']]
+      ];
+      for (const [family, needles] of rules) {
+        if (needles.some(n => text.includes(n))) return family;
+      }
+      return 'other';
+    }
+
+    function familyLabel(family) {
+      const map = {
+        all: 'All Paths',
+        apple: 'Apple',
+        google: 'Google',
+        cloudflare: 'Cloudflare',
+        amazon: 'Amazon',
+        microsoft: 'Microsoft',
+        meta: 'Meta',
+        github: 'GitHub',
+        openai: 'OpenAI',
+        anthropic: 'Anthropic',
+        discord: 'Discord',
+        spotify: 'Spotify',
+        netflix: 'Netflix',
+        zoom: 'Zoom',
+        fastly: 'Fastly',
+        akamai: 'Akamai',
+        tradingview: 'TradingView',
+        other: 'Other'
+      };
+      return map[family] || family;
+    }
+
+    function pressureColor(pct) {
+      if (pct >= 78) return 'var(--red)';
+      if (pct >= 46) return 'var(--amber)';
+      return 'var(--green)';
+    }
+
+    function nav(view) {
+      state.view = view;
+      document.querySelectorAll('.nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.id === 'view-' + view));
+      document.getElementById('viewTitle').textContent = viewMeta[view].title;
+      document.getElementById('viewSub').textContent = viewMeta[view].sub;
+      refreshView(view);
+    }
+
+    function renderStatus() {
+      const strip = document.getElementById('statusStrip');
+      const status = state.status || {};
+      strip.innerHTML = `
+        <div class="pill"><span class="dot ok"></span><b>Server</b> ${status.server || 'unknown'}</div>
+        <div class="pill"><span class="dot ${status.is_root ? 'ok' : 'err'}"></span><b>Root</b> ${status.is_root ? 'yes' : 'no'}</div>
+        <div class="pill"><span class="dot ${status.tcpdump_running ? 'ok' : 'warn'}"></span><b>Capture</b> ${status.tcpdump_running ? status.interface || 'on' : 'off'}</div>
+        <div class="pill"><span class="dot ${status.packets_captured > 0 ? 'ok' : 'warn'}"></span><b>Packets</b> ${fmtNumber(status.packets_captured)}</div>
+      `;
+      document.getElementById('sidebarSummary').innerHTML = `
+        <div class="mini-row"><span>Status</span><span>${status.server || 'unknown'}</span></div>
+        <div class="mini-row"><span>Packets</span><span>${fmtNumber(status.packets_captured)}</span></div>
+        <div class="mini-row"><span>Nodes</span><span>${fmtNumber((state.live.data.markers || []).length)}</span></div>
+        <div class="mini-row"><span>Threats</span><span>${fmtNumber((state.live.data.markers || []).filter(m => m.threat).length)}</span></div>
+      `;
+    }
+
+    async function loadStatus() {
+      try {
+        state.status = await api('/api/status');
+      } catch (err) {
+        state.status = {server: 'error', is_root: false, tcpdump_running: false, packets_captured: 0};
+      }
+      renderStatus();
+    }
+
+    function ensureGlobe() {
+      if (globe || !window.Globe) return;
+      globe = Globe()(document.getElementById('globeCanvas'))
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+        .backgroundColor('rgba(0,0,0,0)')
+        .showAtmosphere(true)
+        .atmosphereColor('#356a8c')
+        .atmosphereAltitude(0.17)
+        .pointLat(d => d.lat)
+        .pointLng(d => d.lng)
+        .pointColor(d => d.color)
+        .pointAltitude(0.02)
+        .pointRadius(d => d.radius)
+        .pointLabel(d => `<div class="mono"><b>${d.company || d.ip}</b><br>${d.city ? d.city + ', ' : ''}${d.country || ''}<br>${familyLabel(d.family)}<br>${fmtBytes(d.bytes)}</div>`)
+        .arcStartLat(d => d.startLat)
+        .arcStartLng(d => d.startLng)
+        .arcEndLat(d => d.endLat)
+        .arcEndLng(d => d.endLng)
+        .arcColor(d => d.color)
+        .arcAltitude(d => d.alt)
+        .arcStroke(d => d.stroke)
+        .arcDashLength(d => d.dashLength)
+        .arcDashGap(d => d.dashGap)
+        .arcDashAnimateTime(d => d.animTime);
+
+      globe.controls().autoRotate = state.live.rotating;
+      globe.controls().autoRotateSpeed = 0.25;
+      globe.controls().enableZoom = true;
+      globe.controls().minDistance = 180;
+    }
+
+    function densityProfile() {
+      return {
+        focus: {arcLimit: 20, markerLimit: 18},
+        balanced: {arcLimit: 48, markerLimit: 36},
+        dense: {arcLimit: 120, markerLimit: 72}
+      }[state.live.density] || {arcLimit: 48, markerLimit: 36};
+    }
+
+    function renderLiveFamilies(markers) {
+      const counts = {};
+      markers.forEach(m => {
+        const key = detectFamily(m);
+        counts[key] = (counts[key] || 0) + (m.bytes || 0);
+      });
+      const top = Object.keys(counts)
+        .sort((a,b) => counts[b] - counts[a])
+        .slice(0, 8)
+        .map(key => ({key, bytes: counts[key]}));
+
+      document.getElementById('familyCount').textContent = String(top.length);
+      document.getElementById('familyFilters').innerHTML = [
+        `<button class="${state.live.provider === 'all' ? 'active' : ''}" data-family="all">All Paths</button>`,
+        ...top.map(item => `<button class="${state.live.provider === item.key ? 'active' : ''}" data-family="${item.key}">${familyLabel(item.key)}</button>`)
+      ].join('');
+    }
+
+    function renderLiveStats(rawMarkers, rawArcs) {
+      const countries = new Set(rawMarkers.map(m => m.country).filter(Boolean));
+      const totalBytes = rawMarkers.reduce((sum, m) => sum + (m.bytes || 0), 0);
+      const threats = rawMarkers.filter(m => m.threat).length;
+      document.getElementById('liveStats').innerHTML = `
+        <div class="stat"><label>Nodes</label><strong>${fmtNumber(rawMarkers.length)}</strong></div>
+        <div class="stat"><label>Paths</label><strong>${fmtNumber(rawArcs.length)}</strong></div>
+        <div class="stat"><label>Traffic</label><strong>${fmtBytes(totalBytes)}</strong></div>
+        <div class="stat"><label>Threats</label><strong>${fmtNumber(threats)}</strong></div>
+        <div class="stat"><label>Countries</label><strong>${fmtNumber(countries.size)}</strong></div>
+        <div class="stat"><label>Mode</label><strong>${state.live.density}</strong></div>
+      `;
+    }
+
+    function renderBuffer(markers) {
+      const outBytes = markers.reduce((sum, m) => sum + (m.out_bytes || 0), 0);
+      const inBytes = markers.reduce((sum, m) => sum + (m.in_bytes || 0), 0);
+      state.live.historyOut = state.live.historyOut.concat([outBytes]).slice(-16);
+      state.live.historyIn = state.live.historyIn.concat([inBytes]).slice(-16);
+
+      const maxOut = Math.max(...state.live.historyOut, 1);
+      const maxIn = Math.max(...state.live.historyIn, 1);
+      const outPct = Math.max(6, Math.min(100, Math.round((outBytes / maxOut) * 100)));
+      const inPct = Math.max(6, Math.min(100, Math.round((inBytes / maxIn) * 100)));
+      const maxPct = Math.max(outPct, inPct);
+      const pressure = maxPct >= 78 ? 'Hot' : maxPct >= 46 ? 'Warm' : 'Cold';
+      const outColor = pressureColor(outPct);
+      const inColor = pressureColor(inPct);
+
+      document.getElementById('pressureBadge').textContent = pressure;
+      document.getElementById('pressureBadge').className = 'badge ' + (pressure === 'Hot' ? 'bad' : pressure === 'Warm' ? 'warn' : 'good');
+      document.getElementById('outValue').textContent = fmtBytes(outBytes);
+      document.getElementById('inValue').textContent = fmtBytes(inBytes);
+      document.getElementById('outFill').style.width = outPct + '%';
+      document.getElementById('inFill').style.width = inPct + '%';
+      document.getElementById('outFill').style.background = outColor;
+      document.getElementById('inFill').style.background = inColor;
+      document.getElementById('outBars').innerHTML = state.live.historyOut.map(v => {
+        const h = Math.max(6, Math.round((v / maxOut) * 40));
+        return `<span style="height:${h}px;background:${outColor}"></span>`;
+      }).join('');
+      document.getElementById('inBars').innerHTML = state.live.historyIn.map(v => {
+        const h = Math.max(6, Math.round((v / maxIn) * 40));
+        return `<span style="height:${h}px;background:${inColor}"></span>`;
+      }).join('');
+    }
+
+    function renderNodeList(rawMarkers) {
+      const nodes = rawMarkers.slice().sort((a,b) => (b.bytes || 0) - (a.bytes || 0)).slice(0, 8);
+      const list = document.getElementById('nodeList');
+      if (!nodes.length) {
+        list.innerHTML = '<div class="empty">No live nodes yet.</div>';
+        return;
+      }
+      list.innerHTML = nodes.map(node => `
+        <div class="item">
+          <div class="item-head">
+            <div>
+              <strong>${node.company || node.ip}</strong>
+              <small>${node.city ? node.city + ', ' : ''}${node.country || ''} · ${familyLabel(detectFamily(node))} · ${fmtBytes(node.bytes)}</small>
+            </div>
+            <span class="badge ${node.threat ? 'bad' : 'good'}">${node.threat ? 'Threat' : 'Live'}</span>
+          </div>
+          <div class="item-actions">
+            <button data-node-ip="${node.ip}">Focus Node</button>
+            <button data-node-family="${detectFamily(node)}">Show ${familyLabel(detectFamily(node))}</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTicker(rawMarkers) {
+      const top = rawMarkers.slice().sort((a,b) => (b.bytes || 0) - (a.bytes || 0)).slice(0, 5);
+      document.getElementById('liveTicker').innerHTML = top.length
+        ? top.map(node => `<span><b>${node.company || node.ip}</b> · ${node.city ? node.city + ', ' : ''}${node.country || ''} · ${fmtBytes(node.bytes)}</span>`).join(' &nbsp; ')
+        : 'Waiting for live traffic data…';
+    }
+
+    function focusNode(ip) {
+      const node = state.live.data.markers.find(m => m.ip === ip);
+      if (!node || !globe || !globe.pointOfView) return;
+      try {
+        globe.pointOfView({lat: node.lat, lng: node.lng, altitude: 1.6}, 900);
+      } catch (err) {}
+    }
+
+    async function loadLive() {
+      ensureGlobe();
+      const traffic = await api('/api/traffic_map');
+      const rawMarkers = (traffic.markers || []).map(m => ({...m, family: detectFamily(m)}));
+      const rawArcs = (traffic.arcs || []).map(a => ({...a, family: detectFamily(a)}));
+      state.live.data = {markers: rawMarkers, arcs: rawArcs};
+
+      renderLiveFamilies(rawMarkers);
+      renderLiveStats(rawMarkers, rawArcs);
+      renderBuffer(rawMarkers);
+      renderNodeList(rawMarkers);
+      renderTicker(rawMarkers);
+      renderStatus();
+
+      const profile = densityProfile();
+      let markers = rawMarkers.slice();
+      let arcs = rawArcs.slice();
+      if (state.live.provider !== 'all') {
+        markers = markers.filter(m => m.family === state.live.provider);
+        arcs = arcs.filter(a => a.family === state.live.provider);
+      }
+      markers = markers.sort((a,b) => (b.bytes || 0) - (a.bytes || 0)).slice(0, profile.markerLimit);
+      arcs = arcs.sort((a,b) => (b.bytes || 0) - (a.bytes || 0)).slice(0, profile.arcLimit);
+
+      const arcData = arcs.map((a, i) => {
+        const isThreat = !!a.threat;
+        const isOut = a.direction !== 'IN';
+        const b = a.bytes || 1;
+        let color;
+        if (isThreat) color = ['rgba(240,93,94,.96)', 'rgba(240,93,94,.15)'];
+        else if (isOut) color = ['rgba(246,193,91,.94)', 'rgba(246,193,91,.08)'];
+        else color = ['rgba(96,217,255,.94)', 'rgba(96,217,255,.08)'];
+        return {
+          startLat: a.from[0],
+          startLng: a.from[1],
+          endLat: a.to[0],
+          endLng: a.to[1],
+          color,
+          alt: Math.max(0.05, Math.min(0.55, 0.05 + b / 7000000)),
+          stroke: Math.max(0.2, Math.min(1.8, 0.2 + b / 3000000)),
+          dashLength: state.live.layer === 'lines' ? 0.95 : 0.22,
+          dashGap: state.live.layer === 'lines' ? 0.16 : 0.35,
+          animTime: isOut ? 1000 + Math.random() * 1200 : 1400 + Math.random() * 1200
+        };
+      });
+
+      const pointData = markers.map(m => ({
+        lat: m.lat,
+        lng: m.lng,
+        ip: m.ip,
+        company: m.company || m.ip,
+        city: m.city,
+        country: m.country,
+        bytes: m.bytes,
+        family: m.family,
+        color: m.threat ? '#f05d5e' : m.bytes > 1500000 ? '#9a74ff' : m.bytes > 300000 ? '#60d9ff' : '#f6c15b',
+        radius: Math.max(0.18, Math.min(1.3, 0.18 + (m.bytes || 0) / 3000000))
+      }));
+
+      if (state.live.layer === 'points') {
+        globe.arcsData([]).pointsData(pointData);
+      } else if (state.live.layer === 'lines') {
+        globe.arcsData(arcData).pointsData([]);
+      } else {
+        globe.arcsData(arcData).pointsData(pointData);
+      }
+      globe.controls().autoRotate = state.live.rotating;
+    }
+
+    async function runInvestigation() {
+      const target = document.getElementById('targetInput').value.trim();
+      if (!target) return;
+      document.getElementById('lastTarget').textContent = 'Running on ' + target + '…';
+      try {
+        const [sonde, traceroute] = await Promise.all([
+          api('/api/sonde', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({target})}),
+          api('/api/traceroute', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({target})})
+        ]);
+        state.sonde = sonde;
+        state.traceroute = traceroute;
+        document.getElementById('lastTarget').textContent = target;
+        renderInvestigation();
+      } catch (err) {
+        document.getElementById('lastTarget').textContent = 'Investigation failed: ' + err.message;
+      }
+    }
+
+    function resultCard(title, content) {
+      return `<div class="result-card"><h4>${title}</h4>${content}</div>`;
+    }
+
+    function renderInvestigation() {
+      const sonde = state.sonde;
+      const traceroute = state.traceroute;
+      const root = document.getElementById('investigationResults');
+      if (!sonde) {
+        root.innerHTML = '<div class="empty">Run an investigation to see results here.</div>';
+        return;
+      }
+      root.innerHTML = [
+        resultCard('Geo', `<div class="kv">
+          <b>City</b><span>${sonde.geo?.city || 'n/a'}</span>
+          <b>Country</b><span>${sonde.geo?.country || 'n/a'}</span>
+          <b>ISP</b><span>${sonde.geo?.isp || 'n/a'}</span>
+          <b>ASN</b><span>${sonde.geo?.as || 'n/a'}</span>
+          <b>Coords</b><span>${sonde.geo?.lat || '?'} / ${sonde.geo?.lon || '?'}</span>
+        </div>`),
+        resultCard('Ping', `<div class="kv">
+          <b>Alive</b><span>${sonde.ping?.alive ? 'yes' : 'no'}</span>
+          <b>Avg</b><span>${sonde.ping?.avg_ms ?? 'n/a'} ms</span>
+          <b>Min</b><span>${sonde.ping?.min_ms ?? 'n/a'} ms</span>
+          <b>Max</b><span>${sonde.ping?.max_ms ?? 'n/a'} ms</span>
+          <b>Loss</b><span>${sonde.ping?.loss_pct ?? 'n/a'}%</span>
+        </div>`),
+        resultCard('Ports', sonde.ports?.length ? `<div class="list">${sonde.ports.map(p => `<div class="item"><strong>${p.port}</strong><small>${p.service}</small></div>`).join('')}</div>` : '<div class="empty">No open common ports found.</div>'),
+        resultCard('SSL', `<div class="kv">
+          <b>OK</b><span>${sonde.ssl?.ok ? 'yes' : 'no'}</span>
+          <b>CN</b><span>${sonde.ssl?.subject_cn || sonde.ssl?.error || 'n/a'}</span>
+          <b>Issuer</b><span>${sonde.ssl?.issuer_o || 'n/a'}</span>
+          <b>Days Left</b><span>${sonde.ssl?.days_left ?? 'n/a'}</span>
+          <b>Grade</b><span>${sonde.ssl?.grade || 'n/a'}</span>
+        </div>`),
+        resultCard('DNS', sonde.dns ? `<pre>${JSON.stringify(sonde.dns, null, 2)}</pre>` : '<div class="empty">No DNS data.</div>'),
+        resultCard('Whois', sonde.whois?.lines?.length ? `<pre>${sonde.whois.lines.join('\n')}</pre>` : '<div class="empty">No whois lines.</div>'),
+        resultCard('BGP', `<pre>${sonde.bgp?.raw || 'No BGP data.'}</pre>`)
+      ].join('');
+
+      const list = document.getElementById('tracerouteList');
+      const hops = traceroute?.hops || [];
+      list.innerHTML = hops.length ? hops.map(h => `
+        <div class="item">
+          <strong>Hop ${h.hop}</strong>
+          <small>${h.ip || '*'} · ${h.ms ?? 'n/a'} ms${h.city ? ' · ' + h.city : ''}${h.country ? ', ' + h.country : ''}</small>
+        </div>
+      `).join('') : '<div class="empty">No traceroute data.</div>';
+    }
+
+    async function runTerminal() {
+      const cmd = document.getElementById('terminalInput').value.trim();
+      if (!cmd) return;
+      document.getElementById('terminalOutput').textContent = 'Running ' + cmd + '…';
+      try {
+        const out = await api('/api/run_cmd', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({cmd})
+        });
+        document.getElementById('terminalOutput').textContent = (out.out || '') + (out.err ? '\n' + out.err : '');
+      } catch (err) {
+        document.getElementById('terminalOutput').textContent = 'Command failed: ' + err.message;
+      }
+    }
+
+    async function loadProcesses() {
+      const tbody = document.getElementById('processTable');
+      try {
+        const data = await api('/api/processes');
+        const rows = data.processes || [];
+        tbody.innerHTML = rows.length ? rows.map(p => `
+          <tr>
+            <td>${p.name}</td>
+            <td class="mono">${p.pid}</td>
+            <td>${p.mem_mb} MB</td>
+            <td>${p.cpu}%</td>
+            <td>${p.net_conns}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="5" class="empty">No active processes returned.</td></tr>';
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">Processes endpoint failed: ${err.message}. Restart app after backend patch.</td></tr>`;
+      }
+    }
+
+    async function openFolder(path) {
+      try {
+        await api('/api/open_folder', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({path})
+        });
+      } catch (err) {}
+    }
+
+    async function loadFolders() {
+      const root = document.getElementById('folderList');
+      const data = await api('/api/folder_info');
+      root.innerHTML = data.map(folder => `
+        <div class="item">
+          <div class="item-head">
+            <div>
+              <strong>${folder.label}</strong>
+              <small>${folder.path} · ${folder.size}</small>
+            </div>
+            <span class="badge ${folder.exists ? 'good' : 'warn'}">${folder.exists ? 'Exists' : 'Missing'}</span>
+          </div>
+          <div class="item-actions">
+            <button data-folder="${folder.path}">Open</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadAdapters() {
+      const root = document.getElementById('adapterList');
+      const data = await api('/api/device_adapters');
+      const adapters = data.adapters || [];
+      root.innerHTML = adapters.map(adapter => `
+        <div class="item">
+          <div class="item-head">
+            <div>
+              <strong>${adapter.label}</strong>
+              <small>${adapter.hint || ''}</small>
+            </div>
+            <span class="badge ${adapter.available ? 'good' : 'warn'}">${adapter.available ? 'Available' : 'Missing'}</span>
+          </div>
+          <small>${(adapter.tools || []).map(t => `${t.name}${t.available ? '' : ' (not found)'}`).join(' · ')}</small>
+        </div>
+      `).join('') || '<div class="empty">No adapters found.</div>';
+    }
+
+    async function loadPackets() {
+      state.packets = await api('/api/packets');
+      const rows = state.packets.slice(0, 60).map(p => `
+        <tr>
+          <td class="mono">${p.ts}</td>
+          <td>${p.dir}</td>
+          <td>${p.dir === 'OUT' ? (p.dst_co || p.dst) : (p.src_co || p.src)}</td>
+          <td>${p.proto}</td>
+          <td>${fmtBytes(p.len)}</td>
+        </tr>
+      `).join('');
+      document.getElementById('packetTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No packets captured.</td></tr>';
+    }
+
+    async function loadConnections() {
+      state.connections = await api('/api/connections');
+      const rows = state.connections.slice(0, 60).map(c => `
+        <tr>
+          <td>${c.proc || '?'}</td>
+          <td class="mono">${c.raddr || '—'}</td>
+          <td>${c.status || '—'}</td>
+          <td class="mono">${c.pid || '—'}</td>
+        </tr>
+      `).join('');
+      document.getElementById('connectionTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No active connections.</td></tr>';
+    }
+
+    async function loadBandwidth() {
+      state.bandwidth = await api('/api/bandwidth');
+      drawBandwidth();
+    }
+
+    function drawBandwidth() {
+      const canvas = document.getElementById('bandwidthCanvas');
+      const ctx = canvas.getContext('2d');
+      const data = state.bandwidth.slice(-60);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255,255,255,.02)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (!data.length) return;
+
+      const max = Math.max(...data.flatMap(d => [d.sent || 0, d.recv || 0]), 1);
+      const pad = {left: 48, right: 18, top: 18, bottom: 32};
+      const w = canvas.width - pad.left - pad.right;
+      const h = canvas.height - pad.top - pad.bottom;
+
+      ctx.strokeStyle = 'rgba(255,255,255,.08)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (h * i / 4);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + w, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#8da2c2';
+      ctx.font = '12px ui-monospace, monospace';
+      for (let i = 0; i <= 4; i++) {
+        const val = max - (max * i / 4);
+        const y = pad.top + (h * i / 4);
+        ctx.fillText(val.toFixed(0) + ' KB/s', 8, y + 4);
+      }
+
+      function line(key, stroke, fill) {
+        ctx.beginPath();
+        data.forEach((point, i) => {
+          const x = pad.left + (w * i / Math.max(data.length - 1, 1));
+          const y = pad.top + h - ((point[key] || 0) / max) * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.lineTo(pad.left + w, pad.top + h);
+        ctx.lineTo(pad.left, pad.top + h);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+
+      line('recv', 'rgba(48,209,125,.95)', 'rgba(48,209,125,.12)');
+      line('sent', 'rgba(240,93,94,.95)', 'rgba(240,93,94,.12)');
+    }
+
+    async function loadTools() {
+      await Promise.allSettled([loadProcesses(), loadFolders(), loadAdapters()]);
+    }
+
+    async function loadDataView() {
+      await Promise.allSettled([loadPackets(), loadConnections(), loadBandwidth()]);
+    }
+
+    function refreshView(view) {
+      clearInterval(liveTimer);
+      clearInterval(toolTimer);
+      clearInterval(dataTimer);
+
+      if (view === 'live') {
+        loadLive().catch(err => {
+          document.getElementById('liveTicker').textContent = 'Live globe failed: ' + err.message;
+        });
+        liveTimer = setInterval(() => loadLive().catch(() => {}), 5000);
+      } else if (view === 'investigate') {
+        if (!state.sonde) renderInvestigation();
+      } else if (view === 'tools') {
+        loadTools().catch(() => {});
+        toolTimer = setInterval(() => loadTools().catch(() => {}), 12000);
+      } else if (view === 'data') {
+        loadDataView().catch(() => {});
+        dataTimer = setInterval(() => loadDataView().catch(() => {}), 5000);
+      }
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.nav button').forEach(btn => {
+        btn.addEventListener('click', () => nav(btn.dataset.view));
+      });
+
+      document.getElementById('runInvestigationBtn').addEventListener('click', runInvestigation);
+      document.getElementById('targetInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runInvestigation();
+      });
+      document.getElementById('terminalRunBtn').addEventListener('click', runTerminal);
+      document.getElementById('terminalInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runTerminal();
+      });
+
+      document.getElementById('refreshProcessesBtn').addEventListener('click', loadProcesses);
+      document.getElementById('refreshDataBtn').addEventListener('click', loadDataView);
+      document.getElementById('refreshLiveBtn').addEventListener('click', () => loadLive().catch(() => {}));
+
+      document.getElementById('rotateBtn').addEventListener('click', () => {
+        state.live.rotating = !state.live.rotating;
+        document.getElementById('rotateBtn').classList.toggle('active', state.live.rotating);
+        if (globe) globe.controls().autoRotate = state.live.rotating;
+      });
+
+      document.querySelector('.globe-controls').addEventListener('click', e => {
+        const btn = e.target.closest('[data-layer]');
+        if (!btn) return;
+        state.live.layer = btn.dataset.layer;
+        document.querySelectorAll('.globe-controls [data-layer]').forEach(b => b.classList.toggle('active', b.dataset.layer === state.live.layer));
+        loadLive().catch(() => {});
+      });
+
+      document.getElementById('densityModes').addEventListener('click', e => {
+        const btn = e.target.closest('[data-density]');
+        if (!btn) return;
+        state.live.density = btn.dataset.density;
+        document.querySelectorAll('#densityModes [data-density]').forEach(b => b.classList.toggle('active', b.dataset.density === state.live.density));
+        loadLive().catch(() => {});
+      });
+
+      document.getElementById('familyFilters').addEventListener('click', e => {
+        const btn = e.target.closest('[data-family]');
+        if (!btn) return;
+        state.live.provider = btn.dataset.family;
+        loadLive().catch(() => {});
+      });
+
+      document.getElementById('nodeList').addEventListener('click', e => {
+        const ipBtn = e.target.closest('[data-node-ip]');
+        const familyBtn = e.target.closest('[data-node-family]');
+        if (ipBtn) focusNode(ipBtn.dataset.nodeIp);
+        if (familyBtn) {
+          state.live.provider = familyBtn.dataset.nodeFamily;
+          loadLive().catch(() => {});
+        }
+      });
+
+      document.getElementById('folderList').addEventListener('click', e => {
+        const btn = e.target.closest('[data-folder]');
+        if (btn) openFolder(btn.dataset.folder);
+      });
+    }
+
+    async function init() {
+      bindEvents();
+      await loadStatus();
+      refreshView('live');
+      setInterval(loadStatus, 5000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

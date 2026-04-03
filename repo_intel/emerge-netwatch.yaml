@@ -1,0 +1,29 @@
+# NetWatch starter profile for lightweight Emerge runs.
+# Adjust keys if your installed Emerge version expects different names.
+
+project_name: netwatch_next
+source_directory: .
+output_directory: repo_intel/emerge-output
+
+exclude_directories:
+  - .git
+  - __pycache__
+  - node_modules
+  - dist
+  - build
+  - .next
+  - .venv
+  - venv
+  - netwatch_logs
+
+include_globs:
+  - app.py
+  - static/**/*.html
+  - static/**/*.js
+  - static/**/*.css
+  - repo_intel/**/*.yaml
+
+light_mode:
+  file_cap: 400
+  byte_cap: 524288
+  notes: "Keep scans focused on structure and dependencies, not generated assets."

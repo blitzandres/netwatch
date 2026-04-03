@@ -1,0 +1,27 @@
+name: Repo Visualizer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  repo-map:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build repo map
+        uses: githubocto/repo-visualizer@0.7.1
+        with:
+          output_file: repo_intel/repo-map.svg
+          excluded_paths: ".git,node_modules,dist,build,.next,.venv,venv,__pycache__,netwatch_logs"
+          excluded_globs: "**/*.png;**/*.jpg;**/*.jpeg;**/*.gif;**/*.ico"
+          max_depth: 6
+          should_push: false
+          artifact_name: netwatch-repo-map

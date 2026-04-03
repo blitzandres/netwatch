@@ -1,0 +1,16 @@
+.git
+__pycache__
+.pytest_cache
+.mypy_cache
+.DS_Store
+node_modules
+dist
+build
+.next
+.venv
+venv
+netwatch_logs
+repo_intel/emerge-output
+repo_intel/*.svg
+repo_intel/*.html
+static/vendor
