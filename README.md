@@ -1,10 +1,20 @@
 # NetWatch
 
-Local network monitoring dashboard: a Python Flask backend with a live globe,
-connection/packet investigation, network tools and a data console, all served
-on your own machine.
+Local network monitoring dashboard — Python **Flask** backend with a live globe, connection/packet investigation, network tools and a data console, all on your own machine.
 
-- **Project page:** https://andresblitz.com/projects/netwatch/
+- **Project page:** [andresblitz.com/projects/netwatch](https://andresblitz.com/projects/netwatch/)
+- **Author:** [Andrés Blitz](https://andresblitz.com/) · [@andresblitz](https://x.com/andresblitz)
+
+## Features
+
+- Live bandwidth and connection views
+- Device / packet investigation panels
+- Local-first: data stays on your machine
+- Optional tcpdump-backed capture (sudo)
+
+## Tech stack
+
+Python · Flask · psutil · HTML/CSS/JS dashboard
 
 ## Run
 
@@ -13,29 +23,15 @@ on your own machine.
 # dashboard: http://localhost:5001
 ```
 
-`launch.sh` installs the minimal dependencies (`flask`, `psutil`) if missing
-and starts `app.py`. Run it with `sudo` to enable tcpdump-backed live packet
-capture; without it NetWatch runs in safe local mode.
-
-Or run it directly:
+Or:
 
 ```bash
 pip install flask psutil
 python3 app.py
 ```
 
-Environment variables:
+Run with `sudo` only if you need live packet capture; otherwise NetWatch runs in safe local mode.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `NETWATCH_BIND` | `127.0.0.1` | Address to bind |
-| `NETWATCH_PORT` | `5001` | Port to listen on |
+## Related
 
-Logs and history live under `~/netwatch_logs/`.
-
-## Docs
-
-- [CHANGES.md](CHANGES.md): change log and environment requirements
-- [PHASE1_FOUNDATION.md](PHASE1_FOUNDATION.md), [PHASE3_REPO_DATA.md](PHASE3_REPO_DATA.md): design phases
-
-NetWatch also feeds the TOPOLOGY realm in [SIGSPACE](https://github.com/blitzandres/sigspace).
+[SIGSPACE](https://github.com/blitzandres/sigspace) · [SIGNET thesis](https://github.com/blitzandres/signet-thesis) · [andresblitz.com](https://andresblitz.com/)
